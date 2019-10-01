@@ -35,3 +35,17 @@ class BProxyItem(object):
     def last_check(self, value):
         self.__last_check = datetime.utcfromtimestamp( datetime.strptime(value, '%Y-%m-%d %H:%M:%S').timestamp() )  
 
+
+    @property
+    def formated(self):
+        for item in ['http', 'https', 'socks4', 'socks5']:
+            if getattr(self, item):
+                return '{}://{}:{}'.format(item, self.ip, self.port)
+        if self.ip and self.port:
+            return '{}:{}'.format(self.ip, self.port)
+        else:
+            return type(self)
+
+    def __str__(self):
+        return self.formated
+            

@@ -20,7 +20,7 @@ class BProxyClient(BProxy):
             if r.status_code == 200:
                 return datetime.fromtimestamp(datetime.today().timestamp() + int(r.text))
             else:
-                raise Exception('Failed connection to srvice with status code "{}"'.format(r.status_code))
+                raise Exception('Failed connection to service with status code "{}"'.format(r.status_code))
 
 
     
@@ -44,14 +44,19 @@ class BProxyClient(BProxy):
         limit:	        При помощи этого параметра задаётся максимальное количество выгружаемого списка прокси. Если этот параметр равен 0, выводится список из не более чем 15.000 прокси. Если этот параметр не задан, выводится список, не более чем из 20 прокси.
         nocascade:	    Если равен 1, то возвращаемый список не содержит каскадных прокси. Данный параметр нельзя задать через веб-фильтр.
         """
-        proxyList = []
         params = kwargs
         params['key'] = self.key
         with self.__session.get(self.__hostname + self.__defaultMethod, params=params) as r:
-            for item in r.json():
-                proxyItem = BProxyItem()
-                for key, value in item.items():
-                    if hasattr(proxyItem, key):
-                        setattr(proxyItem, key, value)
-                proxyList.append(proxyItem)
-        return proxyList
+            if r.status_code == 200:
+                proxyList = []
+                for item in r.json():
+                    proxyItem = BProxyItem()
+                    for key, value in item.items():
+                        if value == '0' or value == '1':
+                            value = int(value)
+                        if hasattr(proxyItem, key):
+                            setattr(proxyItem, key, value)
+                    proxyList.append(proxyItem)
+                return proxyList
+            else:
+                raise Exception('Failed connection to service with status code "{}", body: "{}"'.format(r.status_code, r.text))
